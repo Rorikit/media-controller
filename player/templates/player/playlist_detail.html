@@ -5,7 +5,6 @@
 {% block content %}
 <section class="playlist-header">
     <div>
-        <p class="eyebrow">Плейлист</p>
         <h1>{{ playlist.name }}</h1>
         {% if playlist.description %}
             <p>{{ playlist.description }}</p>
@@ -35,7 +34,6 @@
     <div class="library-panel">
         <div class="section-title">
             <h2>Треки плейлиста</h2>
-            <p>Эти треки доступны для воспроизведения в текущем списке.</p>
         </div>
         {% include 'player/track_list.html' with tracks=playlist.tracks.all playlist=playlist mode='remove' %}
     </div>
@@ -43,7 +41,6 @@
     <div class="library-panel">
         <div class="section-title">
             <h2>Добавить из библиотеки</h2>
-            <p>Любой трек можно добавить в открытый плейлист.</p>
         </div>
         {% include 'player/track_list.html' with tracks=tracks playlist=playlist mode='add' %}
     </div>

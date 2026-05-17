@@ -5,8 +5,7 @@
 {% block content %}
 <section class="hero">
     <div>
-        <p class="eyebrow">Frontend project</p>
-        <h1>Мультимедийный плеер с управлением плейлистами</h1>
+        <h1>Media Controller</h1>
     </div>
     <div class="hero-stat">
         <strong>{{ tracks|length }}</strong>
@@ -30,7 +29,6 @@
     <div class="library-panel">
         <div class="section-title">
             <h2>Доступные треки</h2>
-            <p>Нажмите на карточку, чтобы запустить воспроизведение.</p>
         </div>
         {% include 'player/track_list.html' with tracks=tracks playlists=playlists mode='home' %}
     </div>
@@ -38,7 +36,6 @@
     <div class="library-panel">
         <div class="section-title">
             <h2>Все плейлисты</h2>
-            <p>Откройте плейлист, чтобы добавить или убрать треки.</p>
         </div>
         <div class="playlist-cards">
             {% for item in playlists %}

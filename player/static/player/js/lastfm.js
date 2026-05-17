@@ -25,7 +25,7 @@ class LastFmUi {
 
     async loadTrack(track) {
         if (!track || !track.artist || !track.title) {
-            this.setStatus('Запустите трек, чтобы загрузить данные Last.fm.');
+            this.setStatus('');
             return;
         }
 
