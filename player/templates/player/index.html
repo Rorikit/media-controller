@@ -1,0 +1,62 @@
+{% extends 'player/base.html' %}
+
+{% block title %}Главная | Media Controller{% endblock %}
+
+{% block content %}
+<section class="hero">
+    <div>
+        <p class="eyebrow">Frontend project</p>
+        <h1>Мультимедийный плеер с управлением плейлистами</h1>
+    </div>
+    <div class="hero-stat">
+        <strong>{{ tracks|length }}</strong>
+        <span>треков в библиотеке</span>
+    </div>
+</section>
+
+{% include 'player/player_panel.html' with tracks=tracks %}
+
+<section class="library-toolbar">
+    <label class="search-field">
+        <span>Поиск</span>
+        <input type="search" placeholder="Название или исполнитель" data-track-search>
+    </label>
+    <p data-search-summary>Показаны все треки</p>
+</section>
+
+<section class="section-grid">
+    <div class="library-panel">
+        <div class="section-title">
+            <h2>Доступные треки</h2>
+            <p>Нажмите на карточку, чтобы запустить воспроизведение.</p>
+        </div>
+        {% include 'player/track_list.html' with tracks=tracks playlists=playlists mode='home' %}
+    </div>
+
+    <div class="library-panel">
+        <div class="section-title">
+            <h2>Все плейлисты</h2>
+            <p>Откройте плейлист, чтобы добавить или убрать треки.</p>
+        </div>
+        <div class="playlist-cards">
+            {% for item in playlists %}
+                <article class="playlist-card">
+                    <a href="{% url 'playlist_detail' item.id %}">
+                        <strong>{{ item.name }}</strong>
+                        <span>{{ item.tracks.count }} треков</span>
+                    </a>
+                    {% if item.description %}
+                        <p>{{ item.description }}</p>
+                    {% endif %}
+                    <form action="{% url 'delete_playlist' item.id %}" method="post">
+                        {% csrf_token %}
+                        <button class="ghost-button danger" type="submit">Удалить</button>
+                    </form>
+                </article>
+            {% empty %}
+                <p class="empty-state">Создайте первый плейлист в боковой панели.</p>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endblock %}

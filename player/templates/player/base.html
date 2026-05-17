@@ -1,0 +1,98 @@
+{% load static %}
+<!doctype html>
+<html lang="ru">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}Media Controller{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'player/css/style.css' %}?v=vinyl-showcase-1">
+</head>
+<body>
+    <div class="app-shell">
+        <aside class="sidebar">
+            <a class="brand" href="{% url 'index' %}">
+                <span class="brand-mark">▶</span>
+                <span>
+                    <strong>Media Controller</strong>
+                    <small>учебный аудиоплеер</small>
+                </span>
+            </a>
+
+            <section class="panel">
+                <div class="panel-heading">
+                    <h2>Плейлисты</h2>
+                    <span>{{ playlists|length }}</span>
+                </div>
+
+                <nav class="playlist-nav">
+                    {% for item in playlists %}
+                        <a class="playlist-link {% if playlist.id == item.id %}active{% endif %}" href="{% url 'playlist_detail' item.id %}">
+                            <span>{{ item.name }}</span>
+                            <small>{{ item.tracks.count }} тр.</small>
+                        </a>
+                    {% empty %}
+                        <p class="muted">Пока нет плейлистов.</p>
+                    {% endfor %}
+                </nav>
+            </section>
+
+            <section class="panel">
+                <h2>Новый плейлист</h2>
+                <form class="stack-form" action="{% url 'create_playlist' %}" method="post">
+                    {% csrf_token %}
+                    {{ playlist_form.name }}
+                    {{ playlist_form.description }}
+                    <button class="primary-button" type="submit">Создать</button>
+                </form>
+            </section>
+        </aside>
+
+        <main class="content" data-app-content>
+            {% if messages %}
+                <div class="messages">
+                    {% for message in messages %}
+                        <div class="message {{ message.tags }}">{{ message }}</div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+            {% block content %}{% endblock %}
+        </main>
+    </div>
+
+    <section class="global-player-bar" data-global-player data-player-version="global-player-6">
+        <audio data-global-audio preload="metadata"></audio>
+        <div class="bar-track">
+            <div class="bar-cover" data-bar-cover>
+                <img src="" alt="" data-bar-cover-img hidden>
+                <span data-bar-cover-placeholder></span>
+            </div>
+            <div class="bar-meta">
+                <strong data-bar-title>Выберите трек</strong>
+                <span data-bar-artist>Музыка продолжит играть при переходах</span>
+            </div>
+        </div>
+
+        <div class="bar-center">
+            <div class="bar-buttons">
+                <button class="bar-button" type="button" data-global-prev aria-label="Предыдущий трек">⏮</button>
+                <button class="bar-button bar-play" type="button" data-global-play aria-label="Воспроизвести или поставить на паузу">▶</button>
+                <button class="bar-button" type="button" data-global-next aria-label="Следующий трек">⏭</button>
+            </div>
+            <div class="bar-progress">
+                <span data-bar-current>0:00</span>
+                <input type="range" min="0" max="100" value="0" step="0.1" data-global-progress>
+                <span data-bar-duration>0:00</span>
+            </div>
+        </div>
+
+        <div class="bar-volume">
+            <span>Громкость</span>
+            <input type="range" min="0" max="1" value="0.8" step="0.01" data-global-volume>
+        </div>
+        <p class="bar-status" data-bar-status>Плеер загружается...</p>
+    </section>
+
+    <script src="{% static 'player/js/globalPlayer.js' %}?v=vinyl-showcase-1"></script>
+    <script src="{% static 'player/js/player.js' %}?v=vinyl-showcase-1"></script>
+</body>
+</html>

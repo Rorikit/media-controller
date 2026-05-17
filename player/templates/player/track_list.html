@@ -1,0 +1,52 @@
+<div class="track-list">
+    {% for track in tracks %}
+        <article class="track-card"
+                 data-track
+                 data-title="{{ track.title }}"
+                 data-artist="{{ track.artist }}"
+                 data-cover="{% if track.cover_image %}{{ track.cover_image.url }}{% endif %}"
+                 data-src="{% if track.audio_file %}{{ track.audio_file.url }}{% endif %}">
+            <button class="track-play" type="button" aria-label="Воспроизвести {{ track.title }}">▶</button>
+            <div class="track-cover">
+                {% if track.cover_image %}
+                    <img src="{{ track.cover_image.url }}" alt="Обложка {{ track.title }}">
+                {% else %}
+                    <span>♪</span>
+                {% endif %}
+            </div>
+            <div class="track-main">
+                <strong>{{ track.title }}</strong>
+                <span>{{ track.artist|default:'Неизвестный исполнитель' }}</span>
+            </div>
+            <span class="track-duration">{{ track.duration|default:'--:--' }}</span>
+
+            {% if mode == 'home' %}
+                {% if playlists %}
+                    <form class="add-form" action="{% url 'add_track_from_select' track.id %}" method="post">
+                        {% csrf_token %}
+                        <select name="playlist_id" aria-label="Выберите плейлист">
+                            {% for item in playlists %}
+                                <option value="{{ item.id }}">{{ item.name }}</option>
+                            {% endfor %}
+                        </select>
+                        <button class="mini-button" type="submit" title="Добавить в плейлист">+</button>
+                    </form>
+                {% else %}
+                    <span class="track-hint">Создайте плейлист</span>
+                {% endif %}
+            {% elif playlist and mode == 'add' %}
+                <form action="{% url 'add_track_to_playlist' playlist.id track.id %}" method="post">
+                    {% csrf_token %}
+                    <button class="mini-button" type="submit">+</button>
+                </form>
+            {% elif playlist and mode == 'remove' %}
+                <form action="{% url 'remove_track_from_playlist' playlist.id track.id %}" method="post">
+                    {% csrf_token %}
+                    <button class="mini-button danger" type="submit">−</button>
+                </form>
+            {% endif %}
+        </article>
+    {% empty %}
+        <p class="empty-state">Здесь пока нет треков.</p>
+    {% endfor %}
+</div>
