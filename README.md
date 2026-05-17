@@ -107,6 +107,14 @@ LASTFM_API_SECRET=your_lastfm_api_secret_here
 
 Если `LASTFM_API_KEY` не задан, приложение продолжит работать: плеер, плейлисты, винил и локальный поиск не сломаются, а Last.fm блок покажет fallback-сообщение.
 
+Для GitHub Pages добавьте repository secret:
+
+```text
+LASTFM_API_KEY
+```
+
+Workflow подставит этот public API key в статическую сборку. `LASTFM_API_SECRET` на GitHub Pages не нужен и не публикуется: статический frontend использует только публичные read-only методы Last.fm.
+
 Внутренние endpoints:
 
 ```text
@@ -190,10 +198,10 @@ https://USERNAME.github.io/REPOSITORY/
 - player bar и persistent audio работают;
 - винил работает;
 - созданные на момент сборки плейлисты отображаются;
-- Last.fm backend endpoints недоступны;
+- Last.fm работает через прямые frontend-запросы к `ws.audioscrobbler.com`, если в GitHub Secrets задан `LASTFM_API_KEY`;
 - создание, удаление и редактирование плейлистов через формы доступно только в локальной Django-версии.
 
-В статической версии формы и Last.fm API-запросы к Django не отправляются на backend; интерфейс покажет поясняющее сообщение.
+В статической версии формы не отправляются на backend; интерфейс покажет поясняющее сообщение.
 
 ## Структура
 

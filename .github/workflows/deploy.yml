@@ -45,6 +45,7 @@ jobs:
       - name: Export static site
         env:
           PAGES_BASE_PATH: /${{ github.event.repository.name }}/
+          LASTFM_API_KEY: ${{ secrets.LASTFM_API_KEY }}
         run: |
           python manage.py export_static_site --output site --base-path "$PAGES_BASE_PATH"
           python scripts/copy-404.py

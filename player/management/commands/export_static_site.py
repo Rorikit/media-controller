@@ -69,7 +69,7 @@ class Command(BaseCommand):
         html = re.sub(r'(href|src)="static/', rf'\1="{base_path}static/', html)
         html = re.sub(r'(href|src|data-src|data-cover)="media/', rf'\1="{base_path}media/', html)
         html = html.replace('href="playlist/', f'href="{base_path}playlist/')
-        html = html.replace('<body>', '<body data-static-export="true">')
+        html = html.replace('<body ', '<body data-static-export="true" ', 1)
         return html
 
     def copy_directory(self, source, destination):

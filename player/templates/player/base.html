@@ -7,7 +7,7 @@
     <title>{% block title %}Media Controller{% endblock %}</title>
     <link rel="stylesheet" href="{% static 'player/css/style.css' %}?v=lastfm-1">
 </head>
-<body>
+<body data-lastfm-api-key="{{ LASTFM_API_KEY }}">
     <div class="app-shell">
         <aside class="sidebar">
             <a class="brand" href="{% url 'index' %}">

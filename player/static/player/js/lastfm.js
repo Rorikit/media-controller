@@ -28,10 +28,6 @@ class LastFmUi {
             this.setStatus('Запустите трек, чтобы загрузить данные Last.fm.');
             return;
         }
-        if (document.body.dataset.staticExport === 'true') {
-            this.setStatus('Last.fm API доступен в локальной Django-версии. На GitHub Pages backend endpoint недоступен.');
-            return;
-        }
 
         const key = `${track.artist}::${track.title}`;
         if (key === this.currentKey) {
@@ -41,9 +37,9 @@ class LastFmUi {
         this.setStatus('Загружаю данные Last.fm...');
 
         try {
-            const params = new URLSearchParams({artist: track.artist, track: track.title});
-            const response = await fetch(`/api/lastfm/track/?${params.toString()}`);
-            const payload = await response.json();
+            const payload = document.body.dataset.staticExport === 'true'
+                ? await this.fetchStaticTrack(track.artist, track.title)
+                : await this.fetchDjangoTrack(track.artist, track.title);
             if (!payload.ok) {
                 this.setStatus(payload.message || 'Информация Last.fm недоступна.');
                 this.clearPanels();
@@ -65,15 +61,12 @@ class LastFmUi {
             results.innerHTML = '<p class="empty-state">Введите запрос для поиска.</p>';
             return;
         }
-        if (document.body.dataset.staticExport === 'true') {
-            results.innerHTML = '<p class="empty-state">Поиск Last.fm доступен в локальной Django-версии.</p>';
-            return;
-        }
 
         results.innerHTML = '<p class="empty-state">Ищу в Last.fm...</p>';
         try {
-            const response = await fetch(`/api/lastfm/search/?${new URLSearchParams({q: query}).toString()}`);
-            const payload = await response.json();
+            const payload = document.body.dataset.staticExport === 'true'
+                ? await this.fetchStaticSearch(query)
+                : await this.fetchDjangoSearch(query);
             if (!payload.ok) {
                 results.innerHTML = `<p class="empty-state">${payload.message || 'Поиск недоступен.'}</p>`;
                 return;
@@ -85,6 +78,152 @@ class LastFmUi {
         } catch {
             results.innerHTML = '<p class="empty-state">Не удалось выполнить поиск Last.fm.</p>';
         }
+    }
+
+    async fetchDjangoTrack(artist, track) {
+        const params = new URLSearchParams({artist, track});
+        const response = await fetch(`/api/lastfm/track/?${params.toString()}`);
+        return response.json();
+    }
+
+    async fetchDjangoSearch(query) {
+        const response = await fetch(`/api/lastfm/search/?${new URLSearchParams({q: query}).toString()}`);
+        return response.json();
+    }
+
+    async fetchStaticTrack(artist, track) {
+        if (!this.apiKey()) {
+            return this.error('missing_api_key', 'LASTFM_API_KEY не добавлен в статическую сборку.');
+        }
+
+        const [trackInfo, artistInfo, topTracks, similarArtists] = await Promise.all([
+            this.lastfmRequest('track.getInfo', {artist, track, autocorrect: 1}),
+            this.lastfmRequest('artist.getInfo', {artist, autocorrect: 1}),
+            this.lastfmRequest('artist.getTopTracks', {artist, limit: 6, autocorrect: 1}),
+            this.lastfmRequest('artist.getSimilar', {artist, limit: 6, autocorrect: 1}),
+        ]);
+
+        if (!trackInfo.ok) {
+            return trackInfo;
+        }
+
+        const rawTrack = trackInfo.data.track || {};
+        const rawArtist = artistInfo.ok ? artistInfo.data.artist || {} : {};
+        return {
+            ok: true,
+            error: null,
+            message: '',
+            data: {
+                track: this.normalizeTrack(rawTrack, artist, track),
+                artist: this.normalizeArtist(rawArtist, artist),
+                top_tracks: topTracks.ok ? this.normalizeTopTracks(topTracks.data, artist) : [],
+                similar_artists: similarArtists.ok ? this.normalizeSimilarArtists(similarArtists.data) : [],
+            },
+        };
+    }
+
+    async fetchStaticSearch(query) {
+        if (!this.apiKey()) {
+            return this.error('missing_api_key', 'LASTFM_API_KEY не добавлен в статическую сборку.');
+        }
+        const payload = await this.lastfmRequest('track.search', {track: query, limit: 8});
+        if (!payload.ok) {
+            return payload;
+        }
+        const matches = payload.data.results?.trackmatches?.track || [];
+        return {
+            ok: true,
+            error: null,
+            message: '',
+            data: {
+                results: this.asList(matches).map((item) => ({
+                    title: item.name || '',
+                    artist: item.artist || '',
+                    listeners: item.listeners || '',
+                    url: item.url || '',
+                    image: this.largestImage(item.image || []),
+                })),
+            },
+        };
+    }
+
+    async lastfmRequest(method, params) {
+        const query = new URLSearchParams({
+            method,
+            api_key: this.apiKey(),
+            format: 'json',
+            ...params,
+        });
+        const response = await fetch(`https://ws.audioscrobbler.com/2.0/?${query.toString()}`);
+        const data = await response.json();
+        if (data.error) {
+            return this.error('lastfm_error', data.message || 'Last.fm вернул ошибку.');
+        }
+        return {ok: true, error: null, message: '', data};
+    }
+
+    normalizeTrack(raw, fallbackArtist, fallbackTrack) {
+        return {
+            title: raw.name || fallbackTrack,
+            artist: typeof raw.artist === 'object' ? raw.artist.name : raw.artist || fallbackArtist,
+            url: raw.url || '',
+            image: this.largestImage(raw.album?.image || []),
+            summary: raw.wiki?.summary || '',
+            listeners: raw.listeners || '',
+            playcount: raw.playcount || '',
+            tags: this.asList(raw.toptags?.tag || []).map((item) => item.name).filter(Boolean),
+        };
+    }
+
+    normalizeArtist(raw, fallbackArtist) {
+        return {
+            artist: raw.name || fallbackArtist,
+            url: raw.url || '',
+            image: this.largestImage(raw.image || []),
+            summary: raw.bio?.summary || '',
+            listeners: raw.stats?.listeners || '',
+            playcount: raw.stats?.playcount || '',
+            tags: this.asList(raw.tags?.tag || []).map((item) => item.name).filter(Boolean),
+        };
+    }
+
+    normalizeTopTracks(raw, fallbackArtist) {
+        return this.asList(raw.toptracks?.track || []).map((item) => ({
+            title: item.name || '',
+            artist: typeof item.artist === 'object' ? item.artist.name : item.artist || fallbackArtist,
+            playcount: item.playcount || '',
+            listeners: item.listeners || '',
+            url: item.url || '',
+            image: this.largestImage(item.image || []),
+        }));
+    }
+
+    normalizeSimilarArtists(raw) {
+        return this.asList(raw.similarartists?.artist || []).map((item) => ({
+            name: item.name || '',
+            url: item.url || '',
+            image: this.largestImage(item.image || []),
+            match: item.match || '',
+        }));
+    }
+
+    largestImage(images) {
+        return this.asList(images).map((item) => item['#text']).filter(Boolean).pop() || '';
+    }
+
+    asList(value) {
+        if (Array.isArray(value)) {
+            return value;
+        }
+        return value ? [value] : [];
+    }
+
+    apiKey() {
+        return document.body.dataset.lastfmApiKey || '';
+    }
+
+    error(error, message) {
+        return {ok: false, error, message, data: {}};
     }
 
     renderTrack(data) {
