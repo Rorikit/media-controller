@@ -18,4 +18,7 @@ urlpatterns = [
         name='remove_track_from_playlist',
     ),
     path('track/<int:track_pk>/add-to-playlist/', views.add_track_from_select, name='add_track_from_select'),
+    path('api/lastfm/track/', views.lastfm_track, name='lastfm_track'),
+    path('api/lastfm/artist/', views.lastfm_artist, name='lastfm_artist'),
+    path('api/lastfm/search/', views.lastfm_search, name='lastfm_search'),
 ]

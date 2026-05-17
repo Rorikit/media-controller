@@ -17,6 +17,20 @@ from pathlib import Path
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
+def load_local_env():
+    env_file = BASE_DIR / '.env'
+    if not env_file.exists():
+        return
+    for line in env_file.read_text(encoding='utf-8').splitlines():
+        if not line or line.strip().startswith('#') or '=' not in line:
+            continue
+        key, value = line.split('=', 1)
+        os.environ.setdefault(key.strip(), value.strip().strip('"').strip("'"))
+
+
+load_local_env()
+
+
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
@@ -124,5 +138,15 @@ MEDIA_ROOT = BASE_DIR / 'media'
 
 # Static export uses this prefix for GitHub Pages, for example "/repository/".
 PAGES_BASE_PATH = os.environ.get('PAGES_BASE_PATH', '').strip()
+
+LASTFM_API_KEY = os.environ.get('LASTFM_API_KEY', '').strip()
+LASTFM_API_SECRET = os.environ.get('LASTFM_API_SECRET', '').strip()
+
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        'LOCATION': 'media-controller-cache',
+    }
+}
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'

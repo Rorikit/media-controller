@@ -1,0 +1,56 @@
+<section class="lastfm-grid" data-lastfm-root>
+    <article class="lastfm-panel">
+        <div class="section-title">
+            <div>
+                <h2>Информация о треке</h2>
+                <p data-lastfm-status>Запустите трек, чтобы загрузить данные Last.fm.</p>
+            </div>
+            <span class="lastfm-badge">Last.fm</span>
+        </div>
+
+        <div class="lastfm-track-card" data-lastfm-content hidden>
+            <div class="lastfm-image">
+                <img src="" alt="" data-lastfm-image hidden>
+                <span data-lastfm-image-placeholder></span>
+            </div>
+            <div class="lastfm-details">
+                <h3 data-lastfm-title>Трек</h3>
+                <p data-lastfm-artist>Исполнитель</p>
+                <p class="lastfm-summary" data-lastfm-summary></p>
+                <div class="lastfm-stats">
+                    <span data-lastfm-listeners></span>
+                    <span data-lastfm-playcount></span>
+                </div>
+                <div class="lastfm-tags" data-lastfm-tags></div>
+            </div>
+        </div>
+
+        <div class="lastfm-similar" data-lastfm-similar></div>
+    </article>
+
+    <article class="lastfm-panel">
+        <div class="section-title">
+            <div>
+                <h2>Популярные треки исполнителя</h2>
+                <p>Данные Last.fm используются только как метаданные.</p>
+            </div>
+        </div>
+        <div class="lastfm-top-tracks" data-lastfm-top-tracks>
+            <p class="empty-state">Список появится после выбора трека.</p>
+        </div>
+    </article>
+
+    <article class="lastfm-panel lastfm-search-panel">
+        <div class="section-title">
+            <div>
+                <h2>Поиск в Last.fm</h2>
+                <p>Ищет метаданные, а не аудиофайлы.</p>
+            </div>
+        </div>
+        <form class="lastfm-search" data-lastfm-search-form>
+            <input type="search" placeholder="Например: Linkin Park Numb" data-lastfm-search-input>
+            <button class="primary-button" type="submit">Искать в Last.fm</button>
+        </form>
+        <div class="lastfm-results" data-lastfm-results></div>
+    </article>
+</section>

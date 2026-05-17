@@ -19,7 +19,6 @@ class GlobalPlayerManager {
         this.bindAudio();
         this.bindControls();
         this.bindNavigation();
-        this.setStatus('Плеер готов');
         this.syncUi();
         window.globalPlayer = this;
     }
@@ -235,6 +234,7 @@ class GlobalPlayerManager {
         this.highlightActiveTrack();
         this.syncUi();
         this.saveState();
+        this.notifyTrackChanged();
         this.audio.play().catch((error) => {
             this.setStatus(`Не удалось запустить аудио: ${error.name}`);
             this.syncUi();
@@ -299,6 +299,21 @@ class GlobalPlayerManager {
             img.hidden = true;
             placeholder.hidden = false;
         }
+    }
+
+    applyExternalCover(cover) {
+        if (!this.currentTrack || !cover) {
+            return;
+        }
+        this.currentTrack.cover = cover;
+        this.syncUi();
+        this.saveState();
+    }
+
+    notifyTrackChanged() {
+        window.dispatchEvent(new CustomEvent('global-player-track-change', {
+            detail: {track: this.currentTrack},
+        }));
     }
 
     syncUi() {

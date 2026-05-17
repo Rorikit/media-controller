@@ -21,6 +21,8 @@
 - сохранение текущего трека, очереди, громкости и прогресса в `localStorage`;
 - виниловая анимация, связанная с состоянием плеера;
 - поиск по названию и исполнителю;
+- интеграция Last.fm API для метаданных трека и исполнителя;
+- внешний поиск Last.fm без скачивания музыки;
 - адаптивная тёмная тема;
 - Django admin для локального редактирования треков и плейлистов;
 - статический экспорт для GitHub Pages.
@@ -70,6 +72,48 @@ media/audio/
 4. Укажите `title`, `artist` и `audio_file`.
 
 Для GitHub Pages аудиофайлы должны быть закоммичены в репозиторий, потому что Pages отдаёт только статические файлы.
+
+## Last.fm API
+
+Last.fm используется только как источник метаданных:
+
+- информация о текущем треке;
+- описание исполнителя;
+- теги жанров;
+- похожие исполнители;
+- популярные треки исполнителя;
+- внешний поиск треков.
+
+Last.fm не предоставляет mp3-файлы, поэтому приложение не скачивает музыку и не использует API как источник аудио.
+
+Получить API key можно в кабинете Last.fm API:
+
+```text
+https://www.last.fm/api/account/create
+```
+
+Создайте файл `.env` или задайте переменные окружения:
+
+```text
+LASTFM_API_KEY=your_lastfm_api_key_here
+LASTFM_API_SECRET=your_lastfm_api_secret_here
+```
+
+Пример лежит в:
+
+```text
+.env.example
+```
+
+Если `LASTFM_API_KEY` не задан, приложение продолжит работать: плеер, плейлисты, винил и локальный поиск не сломаются, а Last.fm блок покажет fallback-сообщение.
+
+Внутренние endpoints:
+
+```text
+/api/lastfm/track/?artist=Linkin Park&track=Numb
+/api/lastfm/artist/?artist=Linkin Park
+/api/lastfm/search/?q=numb
+```
 
 ## Демо-данные
 
@@ -146,9 +190,10 @@ https://USERNAME.github.io/REPOSITORY/
 - player bar и persistent audio работают;
 - винил работает;
 - созданные на момент сборки плейлисты отображаются;
+- Last.fm backend endpoints недоступны;
 - создание, удаление и редактирование плейлистов через формы доступно только в локальной Django-версии.
 
-В статической версии формы не отправляются на backend; интерфейс покажет поясняющее сообщение.
+В статической версии формы и Last.fm API-запросы к Django не отправляются на backend; интерфейс покажет поясняющее сообщение.
 
 ## Структура
 
@@ -168,6 +213,8 @@ media_player_project/
 │   │   └── commands/
 │   │       ├── seed_tracks.py
 │   │       └── export_static_site.py
+│   ├── services/
+│   │   └── lastfm.py
 │   ├── templates/player/
 │   └── static/player/
 ├── media/audio/
@@ -181,3 +228,5 @@ media_player_project/
 python manage.py test
 python manage.py export_static_site --output site --base-path /REPOSITORY/
 ```
+
+GitHub Actions запускает `python manage.py test` перед деплоем. Если тесты падают, публикация на Pages не выполняется.
