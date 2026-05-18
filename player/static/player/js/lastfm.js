@@ -99,7 +99,8 @@ class LastFmUi {
             if (!response.ok) {
                 return this.fetchStaticTrack(artist, track);
             }
-            return response.json();
+            const payload = await response.json();
+            return payload.ok ? payload : this.fetchStaticTrack(artist, track);
         } catch {
             return this.fetchStaticTrack(artist, track);
         }
@@ -111,7 +112,8 @@ class LastFmUi {
             if (!response.ok) {
                 return this.fetchStaticSearch(query);
             }
-            return response.json();
+            const payload = await response.json();
+            return payload.ok ? payload : this.fetchStaticSearch(query);
         } catch {
             return this.fetchStaticSearch(query);
         }
