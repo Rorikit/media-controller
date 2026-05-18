@@ -208,6 +208,7 @@ class GlobalPlayerManager {
         if (window.initPageEnhancements) {
             window.initPageEnhancements();
         }
+        window.dispatchEvent(new CustomEvent('global-page-replaced'));
         this.syncUi();
     }
 

@@ -2,12 +2,23 @@ class LastFmUi {
     constructor() {
         this.root = document.querySelector('[data-lastfm-root]');
         this.currentKey = '';
+        this.cachedData = null;
         this.bindSearch();
         window.addEventListener('global-player-track-change', (event) => {
-            this.loadTrack(event.detail.track);
+            this.loadTrack(event.detail.track, true);
+        });
+        window.addEventListener('global-page-replaced', () => {
+            this.root = document.querySelector('[data-lastfm-root]');
+            if (this.cachedData) {
+                this.renderTrack(this.cachedData);
+                return;
+            }
+            if (window.globalPlayer?.currentTrack) {
+                this.loadTrack(window.globalPlayer.currentTrack, true);
+            }
         });
         if (window.globalPlayer?.currentTrack) {
-            this.loadTrack(window.globalPlayer.currentTrack);
+            this.loadTrack(window.globalPlayer.currentTrack, true);
         }
     }
 
@@ -23,14 +34,14 @@ class LastFmUi {
         });
     }
 
-    async loadTrack(track) {
+    async loadTrack(track, force = false) {
         if (!track || !track.artist || !track.title) {
             this.setStatus('');
             return;
         }
 
         const key = `${track.artist}::${track.title}`;
-        if (key === this.currentKey) {
+        if (!force && key === this.currentKey) {
             return;
         }
         this.currentKey = key;
@@ -45,6 +56,7 @@ class LastFmUi {
                 this.clearPanels();
                 return;
             }
+            this.cachedData = payload.data;
             this.renderTrack(payload.data);
         } catch {
             this.setStatus('Не удалось подключиться к Last.fm endpoint.');
@@ -82,13 +94,27 @@ class LastFmUi {
 
     async fetchDjangoTrack(artist, track) {
         const params = new URLSearchParams({artist, track});
-        const response = await fetch(`/api/lastfm/track/?${params.toString()}`);
-        return response.json();
+        try {
+            const response = await fetch(`/api/lastfm/track/?${params.toString()}`);
+            if (!response.ok) {
+                return this.fetchStaticTrack(artist, track);
+            }
+            return response.json();
+        } catch {
+            return this.fetchStaticTrack(artist, track);
+        }
     }
 
     async fetchDjangoSearch(query) {
-        const response = await fetch(`/api/lastfm/search/?${new URLSearchParams({q: query}).toString()}`);
-        return response.json();
+        try {
+            const response = await fetch(`/api/lastfm/search/?${new URLSearchParams({q: query}).toString()}`);
+            if (!response.ok) {
+                return this.fetchStaticSearch(query);
+            }
+            return response.json();
+        } catch {
+            return this.fetchStaticSearch(query);
+        }
     }
 
     async fetchStaticTrack(artist, track) {
