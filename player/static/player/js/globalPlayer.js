@@ -21,6 +21,9 @@ class GlobalPlayerManager {
         this.bindNavigation();
         this.syncUi();
         window.globalPlayer = this;
+        if (this.currentTrack) {
+            this.notifyTrackChanged();
+        }
     }
 
     formatTime(seconds) {

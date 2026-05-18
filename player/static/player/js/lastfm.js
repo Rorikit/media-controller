@@ -244,6 +244,13 @@ class LastFmUi {
         if (image && window.globalPlayer) {
             window.globalPlayer.applyExternalCover(image);
         }
+        window.dispatchEvent(new CustomEvent('lastfm-metadata', {
+            detail: {
+                image,
+                title: track.title,
+                artist: track.artist || artist.artist,
+            },
+        }));
     }
 
     clearPanels() {
